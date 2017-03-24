@@ -1,0 +1,7 @@
+[package]
+name = "create_auth_key"
+version = "0.0.0"
+workspace = "../../"
+
+[dependencies]
+telegram = { path = "../../telegram" }
