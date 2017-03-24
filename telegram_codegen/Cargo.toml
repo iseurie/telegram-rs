@@ -1,6 +1,6 @@
 [package]
 name = "telegram_codegen"
-version = "0.1.0-pre"
+version = "0.1.0"
 authors = ["Ryan Leckey <leckey.ryan@gmail.com>"]
 workspace = "../"
 

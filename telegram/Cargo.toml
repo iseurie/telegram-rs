@@ -1,6 +1,6 @@
 [package]
 name = "telegram"
-version = "0.1.0-pre"
+version = "0.1.0"
 description = "Unofficial Telegram API Library"
 authors = ["Ryan Leckey <leckey.ryan@gmail.com>"]
 workspace = "../"
@@ -8,7 +8,7 @@ workspace = "../"
 [dependencies]
 byteorder = "1.0.0"
 error-chain = "0.9.0"
-telegram_derive = { path = "../telegram_derive" }
+telegram_derive = "0.1.0"
 
 [build-dependencies]
-telegram_codegen = { path = "../telegram_codegen" }
+telegram_codegen = "0.1.0"
