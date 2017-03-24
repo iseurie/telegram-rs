@@ -5,3 +5,4 @@ workspace = "../../"
 
 [dependencies]
 telegram = { path = "../../telegram" }
+hyper = "0.10"

@@ -1,7 +1,13 @@
 extern crate telegram;
+extern crate hyper;
+
+use hyper::Client;
+use hyper::client::Body;
+use hyper::header::{ContentLength, Connection};
 
 use telegram::ser::Serialize;
 use std::time::{SystemTime, UNIX_EPOCH};
+use std::io::Read;
 
 fn main() {
     // Request for (p,q) Authorization
@@ -35,7 +41,7 @@ fn main() {
     req_pq.serialize_to(&mut message).unwrap();
 
     // message_length
-    (message.len() as u64).serialize_to(&mut buffer).unwrap();
+    (message.len() as u32).serialize_to(&mut buffer).unwrap();
 
     // Push the message into the buffer
     buffer.extend(message);
@@ -45,6 +51,28 @@ fn main() {
 
     // [DEBUG] Show buffer
     pprint(&buffer);
+
+    // [DEBUG] Step
+    println!(" - Send {}", "http://149.154.167.50:443/api");
+
+    let client = Client::new();
+    let mut res = client.post("http://149.154.167.50:443/api")
+        .header(Connection::keep_alive())
+        .header(ContentLength(buffer.len() as u64))
+        .body(Body::BufBody(&buffer, buffer.len()))
+        .send().unwrap();
+
+    // [DEBUG] Show response
+    println!("{}\n", res.status);
+    println!("{}", res.headers);
+
+    // [DEBUG] Step
+    println!(" - Receive");
+
+    let mut res_buffer = Vec::new();
+    res.read_to_end(&mut res_buffer).unwrap();
+
+    pprint(&res_buffer);
 }
 
 fn pprint(buffer: &[u8]) {
