@@ -1,9 +1,10 @@
 use std::collections::HashMap;
-use parser::{Schema, Parameter};
 use std::fs::File;
 use std::io::Write;
-use std::error::Error;
 use std::path::Path;
+
+use error;
+use parser::{Schema, Parameter};
 
 struct Constructor {
     id: i32,
@@ -138,8 +139,7 @@ fn to_constructor(id: i32,
 }
 
 /// Generate Rust definitions to the file from the schema
-// TODO(@rust): Use error_chain!
-pub fn generate(filename: &Path, schema: Schema) -> Result<(), Box<Error>> {
+pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
     let mut modules = HashMap::<Option<String>, Module>::new();
     let mut predicates = HashMap::<String, String>::new();
 
