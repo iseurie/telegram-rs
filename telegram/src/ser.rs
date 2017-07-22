@@ -1,12 +1,16 @@
-use error::*;
-use byteorder::{WriteBytesExt, LittleEndian, BigEndian};
 use std::any::Any;
+
+use byteorder::{WriteBytesExt, LittleEndian, BigEndian};
+use extprim::i128::i128;
+use extprim::u128::u128;
+
+use error;
 
 macro_rules! impl_serialize {
     ($type:path, $write:path) => {
         impl Serialize for $type {
             #[inline]
-            fn serialize_to(&self, buffer: &mut Vec<u8>) -> Result<()> {
+            fn serialize_to(&self, buffer: &mut Vec<u8>) -> error::Result<()> {
                 $write(buffer, *self)?;
 
                 Ok(())
@@ -17,12 +21,12 @@ macro_rules! impl_serialize {
 
 pub trait Serialize {
     /// Serialize to the passed buffer.
-    fn serialize_to(&self, buffer: &mut Vec<u8>) -> Result<()>;
+    fn serialize_to(&self, buffer: &mut Vec<u8>) -> error::Result<()>;
 }
 
 impl Serialize for bool {
     #[inline]
-    fn serialize_to(&self, buffer: &mut Vec<u8>) -> Result<()> {
+    fn serialize_to(&self, buffer: &mut Vec<u8>) -> error::Result<()> {
         if *self {
             buffer.write_i32::<LittleEndian>(-1720552011)?;
         } else {
@@ -35,7 +39,7 @@ impl Serialize for bool {
 
 impl Serialize for i8 {
     #[inline]
-    fn serialize_to(&self, buffer: &mut Vec<u8>) -> Result<()> {
+    fn serialize_to(&self, buffer: &mut Vec<u8>) -> error::Result<()> {
         buffer.push(*self as u8);
 
         Ok(())
@@ -44,7 +48,7 @@ impl Serialize for i8 {
 
 impl Serialize for u8 {
     #[inline]
-    fn serialize_to(&self, buffer: &mut Vec<u8>) -> Result<()> {
+    fn serialize_to(&self, buffer: &mut Vec<u8>) -> error::Result<()> {
         buffer.push(*self);
 
         Ok(())
@@ -64,23 +68,23 @@ impl_serialize!(f64, WriteBytesExt::write_f64<LittleEndian>);
 
 impl Serialize for i128 {
     #[inline]
-    fn serialize_to(&self, buffer: &mut Vec<u8>) -> Result<()> {
-        (*self as u128).serialize_to(buffer)
+    fn serialize_to(&self, buffer: &mut Vec<u8>) -> error::Result<()> {
+        self.as_u128().serialize_to(buffer)
     }
 }
 
 impl Serialize for u128 {
     #[inline]
-    fn serialize_to(&self, buffer: &mut Vec<u8>) -> Result<()> {
-        buffer.write_u64::<BigEndian>((*self >> 64) as u64)?;
-        buffer.write_u64::<BigEndian>(*self as u64)?;
+    fn serialize_to(&self, buffer: &mut Vec<u8>) -> error::Result<()> {
+        buffer.write_u64::<BigEndian>(self.high64())?;
+        buffer.write_u64::<BigEndian>(self.low64())?;
 
         Ok(())
     }
 }
 
 impl Serialize for String {
-    fn serialize_to(&self, buffer: &mut Vec<u8>) -> Result<()> {
+    fn serialize_to(&self, buffer: &mut Vec<u8>) -> error::Result<()> {
         let len = self.len();
 
         if len <= 253 {
@@ -117,7 +121,7 @@ impl Serialize for String {
 }
 
 impl<T: Serialize> Serialize for Vec<T> {
-    fn serialize_to(&self, buffer: &mut Vec<u8>) -> Result<()> {
+    fn serialize_to(&self, buffer: &mut Vec<u8>) -> error::Result<()> {
         // Write type identifier (for Vec)
         buffer.write_u32::<LittleEndian>(0x1cb5c415u32)?;
 
