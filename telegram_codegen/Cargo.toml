@@ -10,6 +10,7 @@ documentation = "https://docs.rs/telegram_codegen"
 repository = "https://github.com/mehcode/telegram-rs"
 
 [dependencies]
+error-chain = "0.9.0"
 serde = "0.9.7"
 serde_derive = "0.9.7"
 serde_json = "0.9.6"
