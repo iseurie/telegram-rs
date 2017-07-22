@@ -140,7 +140,7 @@ impl<T: Serialize> Serialize for Vec<T> {
 }
 
 impl Serialize for Box<Any> {
-    fn serialize_to(&self, buffer: &mut Vec<u8>) -> Result<()> {
+    fn serialize_to(&self, buffer: &mut Vec<u8>) -> error::Result<()> {
         match self.downcast_ref::<Box<Serialize>>() {
             Some(as_ser) => as_ser.serialize_to(buffer),
 

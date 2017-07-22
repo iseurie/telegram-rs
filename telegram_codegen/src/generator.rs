@@ -194,8 +194,9 @@ pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
         if module.types.values().any(|type_| {
             type_.constructors.iter().any(|constructor| {
                 constructor.params.iter().any(|param| {
-                    param[..3] == "int" &&
-                        param[3..].parse::<u64>().map_or(false, |bitness| bitness >= 128)
+                    param.kind.len() >= 3 &&
+                        &param.kind[..3] == "int" &&
+                        param.kind[3..].parse::<u64>().ok().map_or(false, |bitness| bitness >= 128)
                 })
             })
         }) {
