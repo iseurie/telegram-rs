@@ -4,8 +4,10 @@ extern crate syn;
 #[macro_use]
 extern crate quote;
 
+use std::u32;
+
 use proc_macro::TokenStream;
-use syn::{VariantData, Body, MetaItem, Lit};
+use syn::{VariantData, Body, MetaItem, Lit, StrStyle};
 
 #[proc_macro_derive(Serialize, attributes(id))]
 pub fn serialize(input: TokenStream) -> TokenStream {
@@ -47,10 +49,11 @@ fn impl_serialize(ast: &syn::MacroInput) -> quote::Tokens {
         match attr.value {
             MetaItem::NameValue(ref name, ref value) => {
                 if name.as_ref() == "id" {
-                    if let Lit::Int(value, _) = *value {
+                    if let Lit::Str(ref value, StrStyle::Cooked) = *value {
                         // Found an identifier
+                        let value = u32::from_str_radix(&value[2..], 16).unwrap();
                         id = Some(quote! {
-                            (#value as u32).serialize_to(buffer)?;
+                            #value.serialize_to(buffer)?;
                         });
 
                         break;

@@ -188,7 +188,19 @@ pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
     for (module_name, module) in &modules {
         if let Some(ref module_name) = *module_name {
             // Open module
-            writeln!(f, "pub mod {} {{\n", module_name)?;
+            writeln!(f, "pub mod {} {{", module_name)?;
+        }
+
+        if module.types.values().any(|type_| {
+            type_.constructors.iter().any(|constructor| {
+                constructor.params.iter().any(|param| {
+                    param.kind.len() >= 3 &&
+                        &param.kind[..3] == "int" &&
+                        param.kind[3..].parse::<u64>().ok().map_or(false, |bitness| bitness >= 128)
+                })
+            })
+        }) {
+            writeln!(f, "use extprim::i128::i128;")?;
         }
 
         for (name, type_) in &module.types {
@@ -197,7 +209,7 @@ pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
             // Open type
             if type_.constructors.len() == 1 {
                 // A single constructor is output as a struct
-                writeln!(f, "#[id = 0x{:x}]", type_.constructors[0].id)?;
+                writeln!(f, "#[id = \"0x{:x}\"]", type_.constructors[0].id)?;
 
                 if type_.constructors[0].params.is_empty() {
                     // A single constructor with no parameters is a unit
@@ -215,12 +227,12 @@ pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
 
                 if constructor.params.is_empty() {
                     // No parameters
-                    writeln!(f, "  #[id = 0x{:x}]", constructor.id)?;
+                    writeln!(f, "  #[id = \"0x{:x}\"]", constructor.id)?;
                     writeln!(f, "  {},", constructor_name)?;
                 } else {
                     // Open constructor (if more than 1)
                     if type_.constructors.len() > 1 {
-                        writeln!(f, "  #[id = 0x{:x}]", constructor.id)?;
+                        writeln!(f, "  #[id = \"0x{:x}\"]", constructor.id)?;
                         writeln!(f, "  {} {{", constructor_name)?;
                     }
 

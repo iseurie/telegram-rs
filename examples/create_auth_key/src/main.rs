@@ -1,13 +1,16 @@
-extern crate telegram;
+extern crate extprim;
+#[macro_use] extern crate extprim_literals;
 extern crate hyper;
+extern crate telegram;
+
+use std::io::Read;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use hyper::Client;
 use hyper::client::Body;
 use hyper::header::{ContentLength, Connection};
-
 use telegram::ser::Serialize;
-use std::time::{SystemTime, UNIX_EPOCH};
-use std::io::Read;
+
 
 fn main() {
     // Request for (p,q) Authorization
@@ -17,7 +20,7 @@ fn main() {
     println!(" * Request for (p,q) Authorization");
 
     let req_pq = telegram::schema::mtproto::req_pq {
-        nonce: 0x3E0549828CCA27E966B301A48FECE2FC,
+        nonce: i128!(0x3E0549828CCA27E966B301A48FECE2FC),
     };
 
     // [DEBUG] Step

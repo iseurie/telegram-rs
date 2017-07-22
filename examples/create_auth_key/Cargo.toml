@@ -4,5 +4,7 @@ version = "0.0.0"
 workspace = "../../"
 
 [dependencies]
+extprim = "1.4.0"
+extprim_literals = "2.0.3"
 telegram = { path = "../../telegram" }
 hyper = "0.10"
