@@ -8,6 +8,7 @@ pub mod ser;
 pub mod error;
 
 #[allow(non_camel_case_types)]
+#[allow(non_shorthand_field_patterns)]
 pub mod schema {
     include!(concat!(env!("OUT_DIR"), "/schema.rs"));
 
