@@ -97,11 +97,11 @@ fn translate_id(id: &str, current_module: &Option<String>) -> String {
     }
 }
 
-fn to_constructor(id: i32,
+fn to_constructor(id: &str,
                   predicate: &str,
                   params: &Vec<Parameter>,
                   kind: &str)
-                  -> Option<(Option<String>, String, Constructor)> {
+                 -> error::Result<Option<(Option<String>, String, Constructor)>> {
     // Recognized primitive types are ignored when defined
     // and raised to the associated Rust primitive type when requested
     //  - Bool => bool
@@ -110,14 +110,14 @@ fn to_constructor(id: i32,
     //  - Null => ? (figure out what to do with this)
     // TODO(@rust): Is there a clean way to check against a constant set ?
     if kind == "Bool" || kind == "True" || kind == "Vector t" || kind == "Null" {
-        return None;
+        return Ok(None);
     }
 
     // Check for exceptions
     if kind == "PeerSettings" {
         // 1 - PeerSettings doesn't seem to exist (along with the associated method) but its still in the
         //     schema with a seemingly illegal definition
-        return None;
+        return Ok(None);
     }
 
     // Split kind into <module>.<name>
@@ -130,12 +130,12 @@ fn to_constructor(id: i32,
 
     // Translate
     let c = Constructor {
-        id: id,
+        id: id.parse::<i32>()?,
         name: predicate.to_string(),
         params: params.clone(),
     };
 
-    Some((module, name.to_string(), c))
+    Ok(Some((module, name.to_string(), c)))
 }
 
 /// Generate Rust definitions to the file from the schema
@@ -145,10 +145,11 @@ pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
 
     // Translate: Constructors
     for constructor in &schema.constructors {
-        let (module, name, c) = match to_constructor(constructor.id,
-                             &constructor.predicate,
-                             &constructor.params,
-                             &constructor.kind) {
+        let (module, name, c) = match to_constructor(
+                &constructor.id,
+                &constructor.predicate,
+                &constructor.params,
+                &constructor.kind)? {
             Some(value) => value,
             None => {
                 continue;
@@ -167,7 +168,7 @@ pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
     // Translate: Methods
     for method in &schema.methods {
         let (module, name, c) =
-            match to_constructor(method.id, &method.method, &method.params, &method.method) {
+            match to_constructor(&method.id, &method.method, &method.params, &method.method)? {
                 Some(value) => value,
                 None => {
                     continue;
