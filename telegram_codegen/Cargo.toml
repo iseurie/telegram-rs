@@ -1,6 +1,6 @@
 [package]
 name = "telegram_codegen"
-version = "0.1.0"
+version = "0.2.0"
 description = "Generate type definitions and methods for the Unofficial Telegram API Library from the official JSON documents."
 authors = ["Ryan Leckey <leckey.ryan@gmail.com>"]
 workspace = "../"
