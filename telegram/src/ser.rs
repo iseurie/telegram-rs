@@ -76,8 +76,33 @@ impl Serialize for i128 {
 impl Serialize for u128 {
     #[inline]
     fn serialize_to(&self, buffer: &mut Vec<u8>) -> error::Result<()> {
+        /* TODO: maybe should be
+         *     ((self.high64() >> 32) as u32).serialize_to(buffer);
+         *     (self.high64() as u32).serialize_to(buffer);
+         *     ((self.low64() >> 32) as u32).serialize_to(buffer);
+         *     (self.low64() as u32).serialize_to(buffer);
+         * because https://core.telegram.org/schema/mtproto defines int128 as
+         *     int128 4*[ int ] = Int128;
+         * but this example: https://core.telegram.org/mtproto/samples-auth_key
+         * shows that this implementation is correct.
+         */
         buffer.write_u64::<BigEndian>(self.high64())?;
         buffer.write_u64::<BigEndian>(self.low64())?;
+
+        Ok(())
+    }
+}
+
+impl Serialize for (i128, i128) {
+    fn serialize_to(&self, buffer: &mut Vec<u8>) -> error::Result<()> {
+        /* Currently assumes that int128 is correctly serialized and uses it
+         * under the hood.
+         * Here is how https://core.telegram.org/schema/mtproto defines int256:
+         *     int256 8*[ int ] = Int256;
+         * So here we will do big-endian relatively to int128.
+         */
+        self.1.serialize_to(buffer)?;
+        self.0.serialize_to(buffer)?;
 
         Ok(())
     }
