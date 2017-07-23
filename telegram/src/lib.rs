@@ -1,4 +1,7 @@
 extern crate byteorder;
+extern crate tokio_core as tokio;
+extern crate futures;
+extern crate hyper;
 #[macro_use]
 extern crate error_chain;
 extern crate extprim;
@@ -8,6 +11,11 @@ extern crate telegram_derive;
 pub mod ser;
 // pub mod de;
 pub mod error;
+mod client;
+mod request;
+
+pub use client::Client;
+pub use request::Request;
 
 #[allow(non_camel_case_types)]
 pub mod schema {

@@ -6,13 +6,8 @@ extern crate telegram;
 extern crate futures;
 extern crate tokio_core;
 
-use std::time::{SystemTime, UNIX_EPOCH};
-
-use futures::{Future, Stream};
-use hyper::{Client, Request, Method};
+use futures::Future;
 use tokio_core::reactor::Core;
-use hyper::header::{ContentLength, Connection};
-use telegram::ser::Serialize;
 
 
 fn main() {
@@ -22,74 +17,32 @@ fn main() {
     // [DEBUG] Step
     println!(" * Request for (p,q) Authorization");
 
-    let req_pq = telegram::schema::mtproto::req_pq {
+    let req = telegram::Request::new(telegram::schema::mtproto::req_pq {
         nonce: i128!(0x3E0549828CCA27E966B301A48FECE2FC),
-    };
+    });
 
     // [DEBUG] Step
     println!(" - Message");
-    println!("{:?}\n", req_pq);
-
-    let mut buffer = Vec::new();
-
-    // auth_key_id
-    0u64.serialize_to(&mut buffer).unwrap();
-
-    // message_id
-    let now_d = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-    let now_s = now_d.as_secs();
-    let message_id = ((now_s as u64) << 32) + (now_d.subsec_nanos() as u64);
-
-    message_id.serialize_to(&mut buffer).unwrap();
-
-    // Prepare message to compute message_length
-    let mut message = Vec::new();
-    req_pq.serialize_to(&mut message).unwrap();
-
-    // message_length
-    (message.len() as u32).serialize_to(&mut buffer).unwrap();
-
-    // Push the message into the buffer
-    buffer.extend(message);
+    println!("{:?}\n", req);
 
     // [DEBUG] Step
     println!(" - Serialize");
 
     // [DEBUG] Show buffer
+    let buffer = req.to_vec().unwrap();
     pprint(&buffer);
 
     // [DEBUG] Step
-    println!(" - Send {}", "http://149.154.167.50:443/api");
+    println!(" - Send {}\n", "http://149.154.167.50:443/api");
 
     let mut core = Core::new().unwrap();
-    let client = Client::new(&core.handle());
+    let client = telegram::Client::new(&core.handle());
+    let promise = client.request(req).map(|data| {
+        // [DEBUG] Step
+        println!(" - Receive");
 
-    let mut req = Request::new(
-        Method::Post,
-        "http://149.154.167.50:443/api".parse().unwrap(),
-    );
-    req.headers_mut().set(Connection::keep_alive());
-    req.headers_mut().set(ContentLength(buffer.len() as u64));
-    req.set_body(buffer);
-
-    let promise = client
-        .request(req)
-        .and_then(|res| {
-            // [DEBUG] Show response
-            println!("{}\n", res.status());
-            println!("{}", res.headers());
-
-            // Read each chunk in the response
-            res.body().concat2()
-        })
-        .map(|data| {
-            let res_buffer = data.to_vec();
-
-            // [DEBUG] Step
-            println!(" - Receive");
-
-            pprint(&res_buffer);
-        });
+        pprint(&data);
+    });
 
     core.run(promise).unwrap();
 }
