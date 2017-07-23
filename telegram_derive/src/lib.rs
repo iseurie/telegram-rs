@@ -62,7 +62,7 @@ fn impl_serialize(ast: &syn::MacroInput) -> quote::Tokens {
 
                         let quoted_fields = fields.iter().map(|field| {
                             match field.ident {
-                                Some(ref ident) => quote! { #ident: ref #ident },
+                                Some(ref ident) => quote! { ref #ident },
                                 None            => unreachable!(),
                             }
                         }).collect::<Vec<_>>();
