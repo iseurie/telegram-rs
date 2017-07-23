@@ -2,12 +2,14 @@ extern crate extprim;
 #[macro_use] extern crate extprim_literals;
 extern crate hyper;
 extern crate telegram;
+extern crate futures;
+extern crate tokio_core;
 
-use std::io::Read;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use hyper::Client;
-use hyper::client::Body;
+use futures::{Future, Stream};
+use hyper::{Client, Request, Method};
+use tokio_core::reactor::Core;
 use hyper::header::{ContentLength, Connection};
 use telegram::ser::Serialize;
 
@@ -58,24 +60,31 @@ fn main() {
     // [DEBUG] Step
     println!(" - Send {}", "http://149.154.167.50:443/api");
 
-    let client = Client::new();
-    let mut res = client.post("http://149.154.167.50:443/api")
-        .header(Connection::keep_alive())
-        .header(ContentLength(buffer.len() as u64))
-        .body(Body::BufBody(&buffer, buffer.len()))
-        .send().unwrap();
+    let mut core = Core::new().unwrap();
+    let client = Client::new(&core.handle());
 
-    // [DEBUG] Show response
-    println!("{}\n", res.status);
-    println!("{}", res.headers);
+    let mut req = Request::new(Method::Post, "http://149.154.167.50:443/api".parse().unwrap());
+    req.headers_mut().set(Connection::keep_alive());
+    req.headers_mut().set(ContentLength(buffer.len() as u64));
+    req.set_body(buffer);
 
-    // [DEBUG] Step
-    println!(" - Receive");
+    let promise = client.request(req).and_then(|res| {
+        // [DEBUG] Show response
+        println!("{}\n", res.status());
+        println!("{}", res.headers());
 
-    let mut res_buffer = Vec::new();
-    res.read_to_end(&mut res_buffer).unwrap();
+        // Read each chunk in the response
+        res.body().concat2()
+    }).map(|data| {
+        let res_buffer = data.to_vec();
 
-    pprint(&res_buffer);
+        // [DEBUG] Step
+        println!(" - Receive");
+
+        pprint(&res_buffer);
+    });
+
+    core.run(promise).unwrap();
 }
 
 fn pprint(buffer: &[u8]) {
