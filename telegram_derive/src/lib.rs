@@ -15,7 +15,7 @@ pub fn serialize(input: TokenStream) -> TokenStream {
     let s = input.to_string();
 
     // Parse the string representation
-    let ast = syn::parse_macro_input(&s).unwrap();
+    let ast = syn::parse_derive_input(&s).unwrap();
 
     // Build the impl
     let gen = impl_serialize(&ast);
@@ -24,7 +24,7 @@ pub fn serialize(input: TokenStream) -> TokenStream {
     gen.parse().unwrap()
 }
 
-fn impl_serialize(ast: &syn::MacroInput) -> quote::Tokens {
+fn impl_serialize(ast: &syn::DeriveInput) -> quote::Tokens {
     let mut properties = Vec::new();
 
     match ast.body {

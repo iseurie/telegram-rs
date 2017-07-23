@@ -11,7 +11,7 @@ pub struct Parameter {
 
 #[derive(Debug, Deserialize)]
 pub struct Constructor {
-    pub id: i32,
+    pub id: String,
     pub predicate: String,
     pub params: Vec<Parameter>,
 
@@ -21,7 +21,7 @@ pub struct Constructor {
 
 #[derive(Debug, Deserialize)]
 pub struct Method {
-    pub id: i32,
+    pub id: String,
     pub method: String,
     pub params: Vec<Parameter>,
 
