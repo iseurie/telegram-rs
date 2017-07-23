@@ -37,17 +37,13 @@ fn impl_serialize(ast: &syn::DeriveInput) -> quote::Tokens {
             match *data {
                 VariantData::Struct(ref fields) => {
                     impl_serialize_to_body(BodyType::Struct, &ast.attrs, Some(fields))
-                },
+                }
 
-                VariantData::Tuple(_) => {
-                    unreachable!()
-                },
+                VariantData::Tuple(_) => unreachable!(),
 
-                VariantData::Unit => {
-                    impl_serialize_to_body(BodyType::Struct, &ast.attrs, None)
-                },
+                VariantData::Unit => impl_serialize_to_body(BodyType::Struct, &ast.attrs, None),
             }
-        },
+        }
 
         Body::Enum(ref variants) => {
             let mut tokens_variants = quote::Tokens::new();
@@ -60,23 +56,22 @@ fn impl_serialize(ast: &syn::DeriveInput) -> quote::Tokens {
                         let serialize_to_body =
                             impl_serialize_to_body(BodyType::Enum, &variant.attrs, Some(fields));
 
-                        let quoted_fields = fields.iter().map(|field| {
-                            match field.ident {
+                        let quoted_fields = fields
+                            .iter()
+                            .map(|field| match field.ident {
                                 Some(ref ident) => quote! { ref #ident },
-                                None            => unreachable!(),
-                            }
-                        }).collect::<Vec<_>>();
+                                None => unreachable!(),
+                            })
+                            .collect::<Vec<_>>();
 
                         tokens_variants.append(quote! {
                             #item_name::#variant_name { #(#quoted_fields),* } => {
                                 #serialize_to_body
                             },
                         });
-                    },
+                    }
 
-                    VariantData::Tuple(_) => {
-                        unreachable!()
-                    },
+                    VariantData::Tuple(_) => unreachable!(),
 
                     VariantData::Unit => {
                         let serialize_to_body =
@@ -87,7 +82,7 @@ fn impl_serialize(ast: &syn::DeriveInput) -> quote::Tokens {
                                 #serialize_to_body
                             },
                         });
-                    },
+                    }
                 }
             }
 
@@ -96,7 +91,7 @@ fn impl_serialize(ast: &syn::DeriveInput) -> quote::Tokens {
                     #tokens_variants
                 }
             }
-        },
+        }
     };
 
     quote! {
@@ -108,10 +103,11 @@ fn impl_serialize(ast: &syn::DeriveInput) -> quote::Tokens {
     }
 }
 
-fn impl_serialize_to_body(body_type: BodyType,
-                          attrs: &[Attribute],
-                          fields: Option<&[Field]>)
-                         -> quote::Tokens {
+fn impl_serialize_to_body(
+    body_type: BodyType,
+    attrs: &[Attribute],
+    fields: Option<&[Field]>,
+) -> quote::Tokens {
     let mut id = None;
 
     for attr in attrs {
@@ -128,11 +124,11 @@ fn impl_serialize_to_body(body_type: BodyType,
                         break;
                     }
                 }
-            },
+            }
 
             _ => {
                 // Do nothing
-            },
+            }
         }
     }
 
@@ -146,13 +142,13 @@ fn impl_serialize_to_body(body_type: BodyType,
                         quote! {
                             self.#field_name.serialize_to(buffer)?;
                         }
-                    },
+                    }
 
                     BodyType::Enum => {
                         quote! {
                             #field_name.serialize_to(buffer)?;
                         }
-                    },
+                    }
                 };
 
                 properties.push(property);

@@ -22,10 +22,11 @@ struct Module {
     types: HashMap<String, Type>,
 }
 
-fn translate_typename(typename: &str,
-                      current_module: &Option<String>,
-                      predicates: &HashMap<String, String>)
-                      -> String {
+fn translate_typename(
+    typename: &str,
+    current_module: &Option<String>,
+    predicates: &HashMap<String, String>,
+) -> String {
     if typename == "!X" {
         "Box<::std::any::Any>".into()
     } else if typename.contains('%') {
@@ -97,11 +98,12 @@ fn translate_id(id: &str, current_module: &Option<String>) -> String {
     }
 }
 
-fn to_constructor(id: &str,
-                  predicate: &str,
-                  params: &Vec<Parameter>,
-                  kind: &str)
-                 -> error::Result<Option<(Option<String>, String, Constructor)>> {
+fn to_constructor(
+    id: &str,
+    predicate: &str,
+    params: &Vec<Parameter>,
+    kind: &str,
+) -> error::Result<Option<(Option<String>, String, Constructor)>> {
     // Recognized primitive types are ignored when defined
     // and raised to the associated Rust primitive type when requested
     //  - Bool => bool
@@ -115,8 +117,8 @@ fn to_constructor(id: &str,
 
     // Check for exceptions
     if kind == "PeerSettings" {
-        // 1 - PeerSettings doesn't seem to exist (along with the associated method) but its still in the
-        //     schema with a seemingly illegal definition
+        // 1 - PeerSettings doesn't seem to exist (along with the associated method) but
+        //     its still in the schema with a seemingly illegal definition
         return Ok(None);
     }
 
@@ -146,10 +148,11 @@ pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
     // Translate: Constructors
     for constructor in &schema.constructors {
         let (module, name, c) = match to_constructor(
-                &constructor.id,
-                &constructor.predicate,
-                &constructor.params,
-                &constructor.kind)? {
+            &constructor.id,
+            &constructor.predicate,
+            &constructor.params,
+            &constructor.kind,
+        )? {
             Some(value) => value,
             None => {
                 continue;
@@ -157,11 +160,16 @@ pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
         };
 
         // Add a map for predicate -> typename
-        predicates.entry(c.name.clone()).or_insert_with(|| name.to_string());
+        predicates
+            .entry(c.name.clone())
+            .or_insert_with(|| name.to_string());
 
         // Build up type in module
         let module_ = &mut modules.entry(module).or_insert_with(Default::default);
-        let type_ = &mut module_.types.entry(name.to_string()).or_insert_with(Default::default);
+        let type_ = &mut module_
+            .types
+            .entry(name.to_string())
+            .or_insert_with(Default::default);
         type_.constructors.push(c);
     }
 
@@ -176,11 +184,15 @@ pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
             };
 
         // Add a map for predicate -> typename
-        predicates.entry(c.name.clone()).or_insert_with(|| name.to_string());
+        predicates
+            .entry(c.name.clone())
+            .or_insert_with(|| name.to_string());
 
         // Build up type in module
         let module_ = &mut modules.entry(module).or_insert_with(Default::default);
-        let type_ = Type { constructors: vec![c] };
+        let type_ = Type {
+            constructors: vec![c],
+        };
         module_.types.insert(name.to_string(), type_);
     }
 
@@ -195,9 +207,11 @@ pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
         if module.types.values().any(|type_| {
             type_.constructors.iter().any(|constructor| {
                 constructor.params.iter().any(|param| {
-                    param.kind.len() >= 3 &&
-                        &param.kind[..3] == "int" &&
-                        param.kind[3..].parse::<u64>().ok().map_or(false, |bitness| bitness >= 128)
+                    param.kind.len() >= 3 && &param.kind[..3] == "int" &&
+                        param.kind[3..]
+                            .parse::<u64>()
+                            .ok()
+                            .map_or(false, |bitness| bitness >= 128)
                 })
             })
         }) {
@@ -245,10 +259,12 @@ pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
                             write!(f, "pub ")?;
                         }
 
-                        writeln!(f,
-                                 "{}: {},",
-                                 translate_id(&param.name, module_name),
-                                 translate_typename(&param.kind, module_name, &predicates))?;
+                        writeln!(
+                            f,
+                            "{}: {},",
+                            translate_id(&param.name, module_name),
+                            translate_typename(&param.kind, module_name, &predicates)
+                        )?;
                     }
 
                     // Close constructor (if more than 1)
