@@ -13,7 +13,7 @@ repository = "https://github.com/mehcode/telegram-rs"
 byteorder = "1.0.0"
 error-chain = "0.9.0"
 extprim = "1.4.0"
-telegram_derive = "0.1.0"
+telegram_derive = { path = "../telegram_derive", version = "0.1.0" }
 
 [build-dependencies]
-telegram_codegen = "0.1.0"
+telegram_codegen = { path = "../telegram_codegen", version = "0.1.0" }
