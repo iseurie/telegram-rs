@@ -8,22 +8,22 @@ extern crate serde_derive;
 
 extern crate serde_json;
 
+
 mod error;
 mod parser;
 mod generator;
 
 use std::fs::File;
 use std::path::Path;
-use std::io::Read;
 
-pub fn translate(input_filename: &str, output_filename: &Path) -> error::Result<()> {
-    let mut f = File::open(input_filename)?;
-    let mut s = String::new();
-    f.read_to_string(&mut s)?;
 
-    let s: parser::Schema = s.parse()?;
-
-    generator::generate(output_filename, s)?;
+pub fn translate_from_json_file<I, O>(input_filename: I, output_filename: O) -> error::Result<()>
+    where I: AsRef<Path>,
+          O: AsRef<Path>,
+{
+    let f = File::open(input_filename)?;
+    let s: parser::Schema = serde_json::from_reader(f)?;
+    generator::generate(output_filename, &s)?;
 
     Ok(())
 }
