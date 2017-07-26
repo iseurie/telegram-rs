@@ -141,7 +141,7 @@ fn to_constructor(
 }
 
 /// Generate Rust definitions to the file from the schema
-pub fn generate(filename: &Path, schema: Schema) -> error::Result<()> {
+pub fn generate<P: AsRef<Path>>(filename: P, schema: &Schema) -> error::Result<()> {
     let mut modules = HashMap::<Option<String>, Module>::new();
     let mut predicates = HashMap::<String, String>::new();
 
