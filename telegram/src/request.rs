@@ -18,7 +18,7 @@ impl<T: Serialize> Request<T> {
         // FIXME: This can't fail. Attempt to replace this with something from std that
         //        understands that so we don't have an `.unwrap` here
         let now = time::get_time();
-        let message_id = (now.secs as u64) << 32 | ((now_d.subsec_nanos() & -4) as u64)
+        let message_id = (now.sec as u64) << 32 | ((now.nsec & -4) as u64);
 
         Request {
             message_id,
