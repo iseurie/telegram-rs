@@ -1,6 +1,6 @@
 use ser::Serialize;
 use hyper;
-use std::time::{SystemTime, UNIX_EPOCH};
+use time;
 use error;
 
 #[derive(Debug)]
@@ -14,12 +14,11 @@ impl<T: Serialize> Request<T> {
     #[inline]
     pub fn new(body: T) -> Self {
         // Generate a "unique" message id
-        // > Exact unixtime * 2^32
+        // > Exact unixtime * 2^32; client message: divisible by four
         // FIXME: This can't fail. Attempt to replace this with something from std that
         //        understands that so we don't have an `.unwrap` here
-        let now_d = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-        let now_s = now_d.as_secs();
-        let message_id = ((now_s as u64) << 32) + (now_d.subsec_nanos() as u64);
+        let now = time::get_time();
+        let message_id = (now.secs as u64) << 32 | ((now_d.subsec_nanos() & -4) as u64)
 
         Request {
             message_id,

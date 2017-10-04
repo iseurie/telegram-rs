@@ -2,6 +2,7 @@ extern crate byteorder;
 extern crate tokio_core as tokio;
 extern crate futures;
 extern crate hyper;
+extern crate time;
 #[macro_use]
 extern crate error_chain;
 extern crate extprim;

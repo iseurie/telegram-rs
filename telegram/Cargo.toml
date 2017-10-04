@@ -17,6 +17,7 @@ tokio-core = "0.1.6"
 futures = "0.1.14"
 hyper = "0.11"
 telegram_derive = { path = "../telegram_derive", version = "0.2.0" }
+time = "0.1"
 
 [build-dependencies]
 telegram_codegen = { path = "../telegram_codegen", version = "0.2.0" }
